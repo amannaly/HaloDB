@@ -74,7 +74,7 @@ class CompactionManager {
     }
 
     synchronized void startCompactionThread() {
-        if (compactionThread == null && !dbInternal.options.isCompactionDisabled()) {
+        if (isCompactionPaused()) {
             isRunning = true;
             compactionThread = new CompactionThread();
             compactionThread.start();
@@ -96,11 +96,7 @@ class CompactionManager {
 
     synchronized void resumeCompaction() {
         logger.info("Resuming compaction thread");
-        if (!isRunning && compactionThread != null && !compactionThread.isAlive()) {
-            isRunning = true;
-            compactionThread = new CompactionThread();
-            compactionThread.start();
-        }
+        startCompactionThread();
     }
 
     int getCurrentWriteFileId() {
@@ -150,7 +146,7 @@ class CompactionManager {
     }
 
     boolean isCompactionPaused() {
-        return !isRunning;
+        return !isRunning && (compactionThread == null || !compactionThread.isAlive());
     }
 
     private class CompactionThread extends Thread {
@@ -162,7 +158,6 @@ class CompactionManager {
 
             setUncaughtExceptionHandler((t, e) -> {
                 logger.error("Compaction thread crashed. Creating and running another thread. ", e);
-                compactionThread = null;
                 if (currentWriteFile != null) {
                     try {
                         currentWriteFile.flushToDisk();
@@ -172,6 +167,7 @@ class CompactionManager {
                     currentWriteFile = null;
                 }
                 currentWriteFileOffset = 0;
+                isRunning = false;
                 startCompactionThread();
             });
         }
@@ -309,8 +305,6 @@ class CompactionManager {
     // Used only for tests. to be called only after all writes in the test have been performed.
     @VisibleForTesting
     synchronized boolean isCompactionComplete() {
-        if (dbInternal.options.isCompactionDisabled())
-            return true;
 
         // check if compaction was paused.
         // since pause/resume methods are synchronized on the same object

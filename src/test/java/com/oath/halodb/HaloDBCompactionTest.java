@@ -32,7 +32,6 @@ public class HaloDBCompactionTest extends TestBase {
 
         options.setMaxFileSize(recordsPerFile * recordSize);
         options.setCompactionThresholdPerFile(0.5);
-        options.setCompactionDisabled(false);
         options.setFlushDataSizeBytes(2048);
 
         HaloDB db =  getTestDB(directory, options);
@@ -53,7 +52,6 @@ public class HaloDBCompactionTest extends TestBase {
 
         options.setMaxFileSize(recordsPerFile * recordSize);
         options.setCompactionThresholdPerFile(0.5);
-        options.setCompactionDisabled(false);
 
         HaloDB db = getTestDB(directory, options);
 
@@ -76,9 +74,9 @@ public class HaloDBCompactionTest extends TestBase {
         String directory = TestUtils.getTestDirectory("HaloDBCompactionTest", "testReOpenAndUpdatesAndWithoutMerge");
 
         options.setMaxFileSize(recordsPerFile * recordSize);
-        options.setCompactionDisabled(true);
 
         HaloDB db = getTestDB(directory, options);
+        db.pauseCompaction();
 
         Record[] records = insertAndUpdateRecords(numberOfRecords, db);
 
@@ -121,9 +119,9 @@ public class HaloDBCompactionTest extends TestBase {
         String directory = TestUtils.getTestDirectory("HaloDBCompactionTest", "testUpdatesToSameFile");
 
         options.setMaxFileSize(recordsPerFile * recordSize);
-        options.setCompactionDisabled(true);
 
         HaloDB db = getTestDB(directory, options);
+        db.pauseCompaction();
 
         Record[] records = insertAndUpdateRecordsToSameFile(2, db);
 
@@ -141,10 +139,10 @@ public class HaloDBCompactionTest extends TestBase {
     public void testFilesWithStaleDataAddedToCompactionQueueDuringDBOpen(HaloDBOptions options) throws HaloDBException, InterruptedException {
         String directory = TestUtils.getTestDirectory("HaloDBCompactionTest", "testFilesWithStaleDataAddedToCompactionQueueDuringDBOpen");
 
-        options.setCompactionDisabled(true);
         options.setMaxFileSize(10 * 1024);
 
         HaloDB db = getTestDB(directory, options);
+        db.pauseCompaction();
 
         // insert 50 records into 5 files.
         List<Record> records = TestUtils.insertRandomRecordsOfSize(db, 50, 1024-Record.Header.HEADER_SIZE);
@@ -158,7 +156,6 @@ public class HaloDBCompactionTest extends TestBase {
         db.close();
 
         // open the db withe compaction enabled. 
-        options.setCompactionDisabled(false);
         options.setMaxFileSize(10 * 1024);
 
         db = getTestDBWithoutDeletingFiles(directory, options);
@@ -173,9 +170,9 @@ public class HaloDBCompactionTest extends TestBase {
 
         // open the db with compaction disabled.
         options.setMaxFileSize(10 * 1024);
-        options.setCompactionDisabled(true);
 
         db = getTestDBWithoutDeletingFiles(directory, options);
+        db.pauseCompaction();
 
         // insert 20 records into two files. 
         records = TestUtils.insertRandomRecordsOfSize(db, 20, 1024-Record.Header.HEADER_SIZE);
@@ -187,7 +184,6 @@ public class HaloDBCompactionTest extends TestBase {
         db.close();
 
         // Open db again with compaction enabled.
-        options.setCompactionDisabled(false);
         options.setMaxFileSize(10 * 1024);
 
         db = getTestDBWithoutDeletingFiles(directory, options);
