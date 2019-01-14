@@ -642,7 +642,7 @@ class HaloDBInternal {
         return new HaloDBStats(
             statsResetTime,
             stats.getSize(),
-            compactionManager.isCompactionPaused(),
+            compactionManager.isCompactionRunning(),
             compactionManager.noOfFilesPendingCompaction(),
             computeStaleDataMapForStats(),
             stats.getRehashCount(),

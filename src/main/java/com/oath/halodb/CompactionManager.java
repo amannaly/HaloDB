@@ -74,7 +74,7 @@ class CompactionManager {
     }
 
     synchronized void startCompactionThread() {
-        if (isCompactionPaused()) {
+        if (!isCompactionRunning()) {
             logger.info("Starting compaction thread");
             isRunning = true;
             compactionThread = new CompactionThread();
@@ -146,8 +146,8 @@ class CompactionManager {
             = numberOfRecordsScanned = sizeOfRecordsCopied = sizeOfFilesDeleted = 0;
     }
 
-    boolean isCompactionPaused() {
-        return !isRunning || compactionThread == null || !compactionThread.isAlive();
+    boolean isCompactionRunning() {
+        return isRunning || (compactionThread != null && compactionThread.isAlive());
     }
 
     private class CompactionThread extends Thread {
