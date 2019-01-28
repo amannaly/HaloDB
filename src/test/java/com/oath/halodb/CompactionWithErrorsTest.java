@@ -138,7 +138,7 @@ public class CompactionWithErrorsTest extends TestBase {
             compactionManager.startCompactionThread();
 
             // called after db.close()
-            compactionManager.stopCompactionThread();
+            compactionManager.stopCompactionThread(true);
 
             // called when db.open() the second time. 
             compactionManager.startCompactionThread();
